@@ -46,8 +46,10 @@ const tdbg = new TestSqlDbGenerator<'pg', TestTablePg>(
                     link_file_pattern: 'test-table.pg.ts',
                     import_name: '{testTableCreatorPg}',
                 },
-                table_creator_invocation: (storeId)  => {
-                    return `testTableCreatorPg('${storeId}')`
+                table_creator_invocation: (storeIds)  => {
+
+                    return storeIds.map(storeId => `export const store_${storeId} = testTableCreatorPg('${storeId}');`).join("\n")
+                    
                 },
             }, partitioned_schemas.map(x => x.store_id));
 

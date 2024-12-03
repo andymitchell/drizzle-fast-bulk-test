@@ -33,10 +33,10 @@ type Options = {
      * 
      * It's most likely a function in the import file you referenced in link_file_pattern
      * 
-     * @param storeId 
-     * @returns The string form of a function. E.g. tableCreator('storeId1')
+     * @param storeIds
+     * @returns The string form of a function. E.g. tableCreator('storeId1'); tableCreator('storeId2')
      */
-    table_creator_invocation: (storeId:string) => string
+    table_creator_invocation: (storeIds:string[]) => string
 }
 
 /**
@@ -49,9 +49,6 @@ type Options = {
  * @returns 
  */
 export function createSchemaDefinitionFile(options:Options, storeIds: string[]) {
-
-    // Locate the relative file path of sqlSchemaCreator
-    // FYI If you ever wanted this as a compiler script to run as a CLI, you'd just use `import {sqlSchemaCreator} from "this-pkg"` instead
 
     // Get the package root that will contain sqlSchemaCreator.ts, then find it
     const rootDir = getPackageDirectorySync({
@@ -68,9 +65,8 @@ export function createSchemaDefinitionFile(options:Options, storeIds: string[]) 
     let content = `
 import ${options.table_creator_import.import_name} from "${importUrl.replace(/\.(t|j)s$/, '')}";
 
-${storeIds.map(storeId => `
-export const store_${storeId} = ${options.table_creator_invocation(storeId)};
-`).join("\n")}
+${options.table_creator_invocation(storeIds)}
+
     `.trim();
 
 

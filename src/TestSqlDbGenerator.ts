@@ -10,6 +10,7 @@ import { drizzle as drizzleSqlite, LibSQLDatabase } from 'drizzle-orm/libsql';
 import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { QueueMemory, uid } from '@andyrmitchell/utils';
 import { ensureDir } from './ensureDir';
+import { CommonDatabases, SchemaFormatDefault, TestDatabases, TestSqlDb, TestSqlDbGeneratorOptions } from './types';
 
 
 
@@ -26,7 +27,7 @@ function clearDir(testDir:string):void {
 
 let instanceCount = 0;
 
-type CommonDatabases = "sqlite" | "pg";
+
 
 /**
  * Map
@@ -36,24 +37,6 @@ type CommonDatabases = "sqlite" | "pg";
 const COMMON_DATABASES_TO_DRIZZLEKIT_DIALECT:Record<CommonDatabases, "sqlite" | "postgresql" | "mysql" | "turso"> = {
     'pg': 'postgresql',
     'sqlite': 'sqlite'
-}
-
-export type TestDatabases = {
-    'pg': PgliteDatabase,
-    'sqlite': LibSQLDatabase
-}
-
-type SchemaFormatDefault = any;
-
-export type TestSqlDb<D extends CommonDatabases = CommonDatabases, SF = SchemaFormatDefault> = {batch_position: number, instance_id: number, db:TestDatabases[D], schemas: SF, used?: boolean};
-
-type TestSqlDbGeneratorOptions<SF = any> = {
-    generate_schemas_for_batch: (batchPositions: number[], testDirAbsolutePath:string) => Promise<{
-        migration_file_absolute_path: string, 
-        partitioned_schemas: {batch_position: number, schemas: SF}[]
-    }>,
-    batch_size: number,
-    dialect: CommonDatabases
 }
 
 /**

@@ -1,10 +1,14 @@
 Performant (batched) database generation for Drizzle that can run in your local testing suite. 
 
+# The problem
+
+It's slow to spin up a local database (e.g. Pglite) and slow to run drizzle-kit. Setting up a new database+schema per test would be unbearably slow.
+
 # How it works 
 
 To run tests much faster, it generates a batch consisting of: 
 - A single db instance. Either Pglite (Postgres) instance, or a Libsql (Sqlite).
-- X copies of your schema, each with a unique ID, loading into the database. 
+- X copies of your schema, each with a unique ID, loaded into the database. 
 
 Then each test calls `.nextTest()`, which returns the batch's database, and the schema for next unused copy. 
 
@@ -35,9 +39,11 @@ const tdbg = new TestSqlDbGenerator<'pg', TestTablePg>(
                     link_file_pattern: 'test-table.pg.ts',
                     import_name: '{testTableCreatorPg}',
                 },
-                table_creator_invocation: (storeId)  => {
-                    return `testTableCreatorPg('${storeId}')`
-                },
+                table_creator_invocation: (storeIds)  => {
+
+                    return storeIds.map(storeId => `export const store_${storeId} = testTableCreatorPg('${storeId}');`).join("\n")
+                    
+                }
             }, partitioned_schemas.map(x => x.store_id));
 
             return {
