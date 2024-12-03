@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/andymitchell/drizzle-fast-bulk-test"
+    "url": "git+https://github.com/andymitchell/drizzle-fast-bulk-test.git"
   },
   "author": "",
   "license": "MIT",
