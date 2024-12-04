@@ -205,7 +205,7 @@ test('sqlite works - reuse db and data is partitioned into schemas', async () =>
 })
 
 
-test.only('sqlite is created', async () => {
+test('sqlite is created', async () => {
 
 
     await ensureDir(TEST_DIR);
