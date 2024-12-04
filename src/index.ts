@@ -1,6 +1,6 @@
 import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile";
 import { TestSqlDbGenerator } from "./TestSqlDbGenerator";
-import { TestDatabases, TestSqlDb } from "./types";
+import { CommonDatabases, TestDatabases, TestSqlDb } from "./types";
 
 export {
     TestSqlDbGenerator,
@@ -9,5 +9,6 @@ export {
 
 export type {
     TestDatabases,
-    TestSqlDb
+    TestSqlDb,
+    CommonDatabases
 }
