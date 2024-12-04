@@ -213,7 +213,8 @@ export async function setupTestSqliteDb(testDirAbsolutePath:string, migrationsFo
     if( result.rows[0]!.journal_mode!=='wal' ) {
         throw new Error("Expected WAL mode to be active")
     }
-    console.log('Current journal mode:', result);
+    
+
 
     const db = drizzleSqlite(client);
 
