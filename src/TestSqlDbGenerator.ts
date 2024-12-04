@@ -195,12 +195,25 @@ async function setupTestPgDb(migrationsFolder: string, existingDb?: PgliteDataba
 
 export async function setupTestSqliteDb(testDirAbsolutePath:string, migrationsFolder?: string) {
     
-    const client = createClient({
-        url: `file:${testDirAbsolutePath}/test-${uid()}.db` // Switched to eliminate possible resets with connection drops 
+    const url = `file:${testDirAbsolutePath}/test-${uid()}.db` // Switched to eliminate possible resets with connection drops 
+
+    const preClient = createClient({
+        url
     });
 
     // Reduces the chance of a "database is locked" collision, especially around transactions 
-    await client.execute('PRAGMA journal_mode = WAL;');
+    await preClient.execute('PRAGMA journal_mode = WAL;');
+    preClient.close();
+
+    const client = createClient({
+        url
+    });
+
+    const result = await client.execute('PRAGMA journal_mode;');
+    if( result.rows[0]!.journal_mode!=='wal' ) {
+        throw new Error("Expected WAL mode to be active")
+    }
+    console.log('Current journal mode:', result);
 
     const db = drizzleSqlite(client);
 

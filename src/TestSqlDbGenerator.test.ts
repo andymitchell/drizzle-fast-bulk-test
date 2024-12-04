@@ -8,6 +8,7 @@ import { testTableCreatorPg, TestTablePg } from "./test-table.pg";
 import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile";
 import { testTableCreatorSqlite, TestTableSqlite } from "./test-table.sqlite";
 import { sleep } from "@andyrmitchell/utils";
+import { ensureDir } from "./ensureDir";
 
 beforeAll(() => {
     clearDir(getRelativeTestDir(import.meta.url))
@@ -204,8 +205,10 @@ test('sqlite works - reuse db and data is partitioned into schemas', async () =>
 })
 
 
-test('sqlite is created', async () => {
+test.only('sqlite is created', async () => {
 
+
+    await ensureDir(TEST_DIR);
 
     const db = await setupTestSqliteDb(TEST_DIR);
 
