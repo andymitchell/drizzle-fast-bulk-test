@@ -199,6 +199,9 @@ export async function setupTestSqliteDb(testDirAbsolutePath:string, migrationsFo
         url: `file:${testDirAbsolutePath}/test-${uid()}.db` // Switched to eliminate possible resets with connection drops 
     });
 
+    // Reduces the chance of a "database is locked" collision, especially around transactions 
+    await client.execute('PRAGMA journal_mode = WAL;');
+
     const db = drizzleSqlite(client);
 
     if (migrationsFolder) {
