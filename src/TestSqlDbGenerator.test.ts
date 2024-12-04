@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { testTableCreatorPg, TestTablePg } from "./test-table.pg";
 import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile";
 import { testTableCreatorSqlite, TestTableSqlite } from "./test-table.sqlite";
+import { sleep } from "@andyrmitchell/utils";
 
 beforeAll(() => {
     clearDir(getRelativeTestDir(import.meta.url))
@@ -206,7 +207,7 @@ test('sqlite works - reuse db and data is partitioned into schemas', async () =>
 test('sqlite is created', async () => {
 
 
-    const db = await setupTestSqliteDb();
+    const db = await setupTestSqliteDb(TEST_DIR);
 
     const schema = sqliteTable('kv_store', {
         key: text('key').primaryKey(),
@@ -220,6 +221,35 @@ test('sqlite is created', async () => {
 );`))
 
     await db.insert(schema).values({ 'key': 'name', value: 'Alice' });
+    const rows = await db.select().from(schema);
+    
+    expect(rows.length).toBe(1);
+    expect(rows[0]!.value).toBe('Alice');
+
+})
+
+
+
+test('sqlite survives a slow run', async () => {
+
+
+    const db = await setupTestSqliteDb(TEST_DIR);
+
+    const schema = sqliteTable('kv_store', {
+        key: text('key').primaryKey(),
+        value: text('value'),
+    });
+
+    
+    await db.run(sql.raw(`CREATE TABLE kv_store (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);`))
+
+    await db.insert(schema).values({ 'key': 'name', value: 'Alice' });
+
+    await sleep(2000);
+
     const rows = await db.select().from(schema);
     
     expect(rows.length).toBe(1);

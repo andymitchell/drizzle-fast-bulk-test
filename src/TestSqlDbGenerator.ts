@@ -95,7 +95,7 @@ export class TestSqlDbGenerator<D extends CommonDatabases = CommonDatabases, SF 
         if( this.#options.dialect==='pg' ) {
             db = await setupTestPgDb(drizzlePaths.migration_path);
         } else if( this.#options.dialect==='sqlite' ) {
-            db = await setupTestSqliteDb(drizzlePaths.migration_path);
+            db = await setupTestSqliteDb(testDirAbsolutePath, drizzlePaths.migration_path);
             
         } else {
             throw new Error("Unknown impl.dialect");
@@ -193,9 +193,10 @@ async function setupTestPgDb(migrationsFolder: string, existingDb?: PgliteDataba
     return db;
 }
 
-export async function setupTestSqliteDb(migrationsFolder?: string) {
+export async function setupTestSqliteDb(testDirAbsolutePath:string, migrationsFolder?: string) {
+    
     const client = createClient({
-        url: ':memory:'
+        url: `file:${testDirAbsolutePath}/test-${uid()}.db` // Switched to eliminate possible resets with connection drops 
     });
 
     const db = drizzleSqlite(client);
