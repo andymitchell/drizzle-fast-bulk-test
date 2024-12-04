@@ -215,7 +215,6 @@ export async function setupTestSqliteDb(testDirAbsolutePath:string, migrationsFo
     }
     
 
-
     const db = drizzleSqlite(client);
 
     if (migrationsFolder) {
