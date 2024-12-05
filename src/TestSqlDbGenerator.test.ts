@@ -31,7 +31,7 @@ const commonDatabases = COMMON_DATABASES.filter(x => x !== 'sqlite');
 
 for (const key of commonDatabases) {
 
-    test.only(`[${key}] basic works`, async () => {
+    test(`[${key}] basic works`, async () => {
 
         const tdbg = createTestSqlDbGenerators(TEST_DIR, key as 'pg');
         const { db, schemas } = await tdbg.nextTest();
