@@ -1,12 +1,16 @@
+import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { LibSQLDatabase } from "drizzle-orm/libsql";
 import { PgliteDatabase } from "drizzle-orm/pglite";
 
 export type TestDatabases = {
     'pg': PgliteDatabase,
-    'sqlite': LibSQLDatabase
+    'sqlite': LibSQLDatabase | BetterSQLite3Database,
+    'sqlite-bettersqlite3': BetterSQLite3Database
+    'sqlite-libsql': LibSQLDatabase
 }
 
-export type CommonDatabases = "sqlite" | "pg";
+export const COMMON_DATABASES = ["sqlite", "pg", "sqlite-bettersqlite3", "sqlite-libsql"] as const;
+export type CommonDatabases = typeof COMMON_DATABASES[number];
 
 export type SchemaFormatDefault = any;
 

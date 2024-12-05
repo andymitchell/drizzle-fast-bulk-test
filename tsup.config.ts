@@ -6,7 +6,7 @@ export default defineConfig({
   clean: true,
   minify: false,
   target: ['esnext'],
-  external: ["@electric-sql/pglite", "@libsql/client", "drizzle-kit", "drizzle-orm"],
+  external: ["@electric-sql/pglite", "@libsql/client", "better-sqlite3", "drizzle-kit", "drizzle-orm"],
   format: ['esm'], 
   dts: true
 });

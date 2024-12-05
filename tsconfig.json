@@ -5,6 +5,7 @@
         "moduleResolution": "node",
         "strict": true,
         "noUncheckedIndexedAccess": true,
+        "allowSyntheticDefaultImports": true,
         "noImplicitOverride": true,
         "lib": [
             "ESNext",

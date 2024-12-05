@@ -4,13 +4,17 @@ import type { Config } from "drizzle-kit";
 import { PGlite } from "@electric-sql/pglite";
 import { createClient } from '@libsql/client';
 import { migrate as migratePg } from "drizzle-orm/pglite/migrator";
-import { migrate as migrateSqlite } from 'drizzle-orm/libsql/migrator';
+import { migrate as migrateLibsql } from 'drizzle-orm/libsql/migrator';
 import { drizzle as drizzlePg, PgliteDatabase } from "drizzle-orm/pglite";
-import { drizzle as drizzleSqlite, LibSQLDatabase } from 'drizzle-orm/libsql';
+import { drizzle as drizzleLibsql, LibSQLDatabase } from 'drizzle-orm/libsql';
+import {BetterSQLite3Database, drizzle as drizzleBetterSqlite} from 'drizzle-orm/better-sqlite3';
+import { migrate as migrateBetterSqlite} from 'drizzle-orm/better-sqlite3/migrator';
+import Database from 'better-sqlite3';
 import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { QueueMemory, uid } from '@andyrmitchell/utils';
-import { ensureDir } from './ensureDir';
+
 import { CommonDatabases, SchemaFormatDefault, TestDatabases, TestSqlDb, TestSqlDbGeneratorOptions } from './types';
+import { ensureDir } from './ensureDir';
 
 
 
@@ -36,7 +40,9 @@ let instanceCount = 0;
  */
 const COMMON_DATABASES_TO_DRIZZLEKIT_DIALECT:Record<CommonDatabases, "sqlite" | "postgresql" | "mysql" | "turso"> = {
     'pg': 'postgresql',
-    'sqlite': 'sqlite'
+    'sqlite': 'sqlite',
+    'sqlite-bettersqlite3': 'sqlite',
+    'sqlite-libsql': 'sqlite'
 }
 
 /**
@@ -91,14 +97,20 @@ export class TestSqlDbGenerator<D extends CommonDatabases = CommonDatabases, SF 
 
 
         // Generate the db: 
-        let db:PgliteDatabase<any> | LibSQLDatabase;
-        if( this.#options.dialect==='pg' ) {
-            db = await setupTestPgDb(drizzlePaths.migration_path);
-        } else if( this.#options.dialect==='sqlite' ) {
-            db = await setupTestSqliteDb(testDirAbsolutePath, drizzlePaths.migration_path);
-            
-        } else {
-            throw new Error("Unknown impl.dialect");
+        let db:PgliteDatabase<any> | LibSQLDatabase | BetterSQLite3Database;
+        switch(this.#options.dialect) {
+            case 'pg':
+                db = await setupTestPgDb(drizzlePaths.migration_path);
+                break;
+            case 'sqlite':
+            case 'sqlite-bettersqlite3':
+                db = await setupTestSqliteDbBetterSqlite3(testDirAbsolutePath, drizzlePaths.migration_path);
+                break;
+            case 'sqlite-libsql':
+                db = await setupTestSqliteDbLibSql(testDirAbsolutePath, drizzlePaths.migration_path);
+                break;
+            default: 
+                throw new Error("Unknown impl.dialect");
         }
 
 
@@ -193,8 +205,11 @@ async function setupTestPgDb(migrationsFolder: string, existingDb?: PgliteDataba
     return db;
 }
 
-export async function setupTestSqliteDb(testDirAbsolutePath:string, migrationsFolder?: string) {
+export async function setupTestSqliteDbLibSql(testDirAbsolutePath:string, migrationsFolder?: string) {
     
+    
+    
+
     const url = `file:${testDirAbsolutePath}/test-${uid()}.db` // Switched to eliminate possible resets with connection drops 
 
     const preClient = createClient({
@@ -202,7 +217,9 @@ export async function setupTestSqliteDb(testDirAbsolutePath:string, migrationsFo
     });
 
     // Reduces the chance of a "database is locked" collision, especially around transactions 
-    await preClient.execute('PRAGMA journal_mode = WAL;');
+    await preClient.execute('PRAGMA journal_mode = WAL;'); // Speeds things up 
+    
+    
     preClient.close();
 
     const client = createClient({
@@ -213,12 +230,36 @@ export async function setupTestSqliteDb(testDirAbsolutePath:string, migrationsFo
     if( result.rows[0]!.journal_mode!=='wal' ) {
         throw new Error("Expected WAL mode to be active")
     }
+
+    await client.execute('PRAGMA busy_timeout = 5000;'); // Allows it to retry rather than instantly failing 
+
+    const db = drizzleLibsql(client);
     
 
-    const db = drizzleSqlite(client);
+    if (migrationsFolder) {
+        await migrateLibsql(db, {
+            'migrationsFolder': migrationsFolder
+        });
+    }
+
+    return db;
+}
+
+
+
+export async function setupTestSqliteDbBetterSqlite3(testDirAbsolutePath:string, migrationsFolder?: string) {
+    
+
+    const url = `${testDirAbsolutePath}/test-${uid()}.db` // Switched to eliminate possible resets with connection drops 
+
+
+    const client = new Database(url, {timeout: 5000});
+    client.pragma('journal_mode = WAL')
+
+    const db = drizzleBetterSqlite({client});
 
     if (migrationsFolder) {
-        await migrateSqlite(db, {
+        await migrateBetterSqlite(db, {
             'migrationsFolder': migrationsFolder
         });
     }
