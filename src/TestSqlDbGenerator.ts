@@ -14,7 +14,7 @@ import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { QueueMemory, uid } from '@andyrmitchell/utils';
 
 import { CommonDatabases, SchemaFormatDefault, TestDatabases, TestSqlDb, TestSqlDbGeneratorOptions } from './types';
-import { ensureDir } from './ensureDir';
+import {ensureDir} from 'fs-extra';
 
 
 

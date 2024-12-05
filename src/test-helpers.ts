@@ -100,8 +100,8 @@ export function createTestSqlDbGenerators<D extends CommonDatabases>(testDir:str
 
 
 
-export function getRelativeTestDir(testScriptMetaUrl: string): string {
-    return `${fileIoSyncNode.directory_name(fileURLToPath(testScriptMetaUrl))}/test-schemas`;
+export function getRelativeTestDir(testScriptMetaUrl: string, subDir = 'test-schemas'): string {
+    return `${fileIoSyncNode.directory_name(fileURLToPath(testScriptMetaUrl))}/${subDir}`;
 }
 export function clearDir(testDir: string): void {
 

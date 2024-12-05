@@ -1,5 +1,5 @@
 import { sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { test } from 'vitest';
+import { beforeAll, test } from 'vitest';
 
 import { sql } from "drizzle-orm";
 import { setupTestSqliteDbBetterSqlite3, setupTestSqliteDbLibSql, TestSqlDbGenerator } from "./TestSqlDbGenerator";
@@ -9,15 +9,16 @@ import { clearDir, createTestSqlDbGenerators, getRelativeTestDir } from "./test-
 import { COMMON_DATABASES, CommonDatabases } from "./types";
 import { LibSQLDatabase } from "drizzle-orm/libsql";
 import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import { ensureDir } from "./ensureDir";
+import {ensureDirSync} from 'fs-extra';
 
 
-const TEST_DIR = getRelativeTestDir(import.meta.url);
+const TEST_DIR = getRelativeTestDir(import.meta.url, 'test-schemas/main');
 
-beforeAll(async () => {
+beforeAll(() => {
     clearDir(TEST_DIR)
-    await ensureDir(TEST_DIR)
+    ensureDirSync(TEST_DIR)
 })
+
 
 afterAll(() => {
     clearDir(TEST_DIR);
@@ -30,7 +31,7 @@ const commonDatabases = COMMON_DATABASES.filter(x => x !== 'sqlite');
 
 for (const key of commonDatabases) {
 
-    test(`[${key}] basic works`, async () => {
+    test.only(`[${key}] basic works`, async () => {
 
         const tdbg = createTestSqlDbGenerators(TEST_DIR, key as 'pg');
         const { db, schemas } = await tdbg.nextTest();

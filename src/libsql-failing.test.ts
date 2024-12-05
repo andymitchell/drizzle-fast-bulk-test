@@ -3,9 +3,9 @@ import { fileURLToPath } from 'url';
 import { createClient } from "@libsql/client"; // "^0.14.0"
 import {v4 as uuidv4} from 'uuid';
 import {dirname} from 'path';
-import { promises as fs } from 'fs';
+
 import { clearDir, getRelativeTestDir } from './test-helpers';
-import { ensureDir } from './ensureDir';
+import { ensureDirSync} from 'fs-extra';
 
 // LibSql doesn't seem to support busy_timeout https://www.sqlite.org/c3ref/busy_timeout.html 
 // This means that two transactions that overlap will result in a "database is locked" error, and the app code has to handle retrying.
@@ -17,11 +17,11 @@ import { ensureDir } from './ensureDir';
 
 
 
-const TEST_DIR = getRelativeTestDir(import.meta.url);
+const TEST_DIR = getRelativeTestDir(import.meta.url, 'test-schemas/libsql');
 
-beforeAll(async () => {
+beforeAll(() => {
     clearDir(TEST_DIR)
-    await ensureDir(TEST_DIR)
+    ensureDirSync(TEST_DIR)
 })
 
 afterAll(() => {
