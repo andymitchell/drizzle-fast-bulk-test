@@ -40,9 +40,7 @@ let instanceCount = 0;
  */
 const COMMON_DATABASES_TO_DRIZZLEKIT_DIALECT:Record<CommonDatabases, "sqlite" | "postgresql" | "mysql" | "turso"> = {
     'pg': 'postgresql',
-    'sqlite': 'sqlite',
-    'sqlite-bettersqlite3': 'sqlite',
-    'sqlite-libsql': 'sqlite'
+    'sqlite': 'sqlite'
 }
 
 /**
@@ -103,11 +101,11 @@ export class TestSqlDbGenerator<D extends CommonDatabases = CommonDatabases, SF 
                 db = await setupTestPgDb(drizzlePaths.migration_path);
                 break;
             case 'sqlite':
-            case 'sqlite-bettersqlite3':
-                db = await setupTestSqliteDbBetterSqlite3(testDirAbsolutePath, drizzlePaths.migration_path);
-                break;
-            case 'sqlite-libsql':
-                db = await setupTestSqliteDbLibSql(testDirAbsolutePath, drizzlePaths.migration_path);
+                if( this.#options?.sqlite_driver==='libsql' ) {
+                    db = await setupTestSqliteDbLibSql(testDirAbsolutePath, drizzlePaths.migration_path);
+                } else {
+                    db = await setupTestSqliteDbBetterSqlite3(testDirAbsolutePath, drizzlePaths.migration_path);
+                }
                 break;
             default: 
                 throw new Error("Unknown impl.dialect");

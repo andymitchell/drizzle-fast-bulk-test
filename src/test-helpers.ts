@@ -3,16 +3,17 @@ import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile";
 import { testTableCreatorPg, TestTablePg } from "./test-table.pg";
 import { testTableCreatorSqlite, TestTableSqlite } from "./test-table.sqlite";
 import { TestSqlDbGenerator } from "./TestSqlDbGenerator";
-import { CommonDatabases } from "./types";
+import { CommonDatabases, SqliteDriverOptions } from "./types";
 import { fileURLToPath } from 'url';
 
 
 
+type SqliteOptions = {
+    sqlite_driver?: SqliteDriverOptions
+}
 export function createTestSqlDbGenerators(testDir:string, dialect:'pg'):TestSqlDbGenerator<'pg', TestTablePg>
-export function createTestSqlDbGenerators(testDir:string, dialect:'sqlite'):TestSqlDbGenerator<'sqlite-bettersqlite3', TestTableSqlite>
-export function createTestSqlDbGenerators(testDir:string, dialect:'sqlite-bettersqlite3'):TestSqlDbGenerator<'sqlite-bettersqlite3', TestTableSqlite>
-export function createTestSqlDbGenerators(testDir:string, dialect:'sqlite-libsql'):TestSqlDbGenerator<'sqlite-libsql', TestTableSqlite>;
-export function createTestSqlDbGenerators<D extends CommonDatabases>(testDir:string, dialect:D) {
+export function createTestSqlDbGenerators(testDir:string, dialect:'sqlite', options?:SqliteOptions):TestSqlDbGenerator<'sqlite', TestTableSqlite>
+export function createTestSqlDbGenerators<D extends CommonDatabases>(testDir:string, dialect:D, options?: SqliteOptions) {
     switch(dialect) {
         case 'pg':
             return new TestSqlDbGenerator<D, TestTablePg>(
@@ -52,13 +53,12 @@ export function createTestSqlDbGenerators<D extends CommonDatabases>(testDir:str
                 }
             );
         case 'sqlite':
-        case 'sqlite-bettersqlite3':
-        case 'sqlite-libsql':
             return new TestSqlDbGenerator<D, TestTableSqlite>(
                 testDir, 
                 {
                     dialect,
                     batch_size: 5,
+                    sqlite_driver: options?.sqlite_driver,
                     generate_schemas_for_batch: async (batchPositions, batchTestDirAbsolutePath) => {
                         
                         const partitioned_schemas = batchPositions.map(batch_position => {

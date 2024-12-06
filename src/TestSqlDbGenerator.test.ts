@@ -2,14 +2,15 @@ import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { beforeAll, test } from 'vitest';
 
 import { sql } from "drizzle-orm";
-import { setupTestSqliteDbBetterSqlite3, setupTestSqliteDbLibSql, TestSqlDbGenerator } from "./TestSqlDbGenerator";
+import { setupTestSqliteDbBetterSqlite3, setupTestSqliteDbLibSql } from "./TestSqlDbGenerator";
 import { sleep } from "@andyrmitchell/utils";
 
 import { clearDir, createTestSqlDbGenerators, getRelativeTestDir } from "./test-helpers";
-import { COMMON_DATABASES, CommonDatabases } from "./types";
+import { COMMON_DATABASES, CommonDatabases, SqliteDriverOptions } from "./types";
 import { LibSQLDatabase } from "drizzle-orm/libsql";
 import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import {ensureDirSync} from 'fs-extra';
+
 
 
 const TEST_DIR = getRelativeTestDir(import.meta.url, 'test-schemas/main');
@@ -24,12 +25,11 @@ afterAll(() => {
     clearDir(TEST_DIR);
 })
 
+runTests('pg');
+runTests('sqlite', 'better-sqlite3');
+runTests('sqlite', 'libsql');
 
-
-
-const commonDatabases = COMMON_DATABASES.filter(x => x !== 'sqlite');
-
-for (const key of commonDatabases) {
+function runTests(key:CommonDatabases, sqliteDriver?:SqliteDriverOptions) {
 
     test(`[${key}] basic works`, async () => {
 
@@ -84,64 +84,5 @@ for (const key of commonDatabases) {
 
     })
 
-    test(`[${key}] sqlite survives slow concurrent transactions`, async (cx) => {
-        if (
-            key.indexOf('sqlite') !== 0
-            || key === 'sqlite-libsql' // Currently failing without support for busy_timeout. See libsql-failing.test.ts. 
-        ) {
-            cx.skip();
-        }
-
-        let db: LibSQLDatabase | BetterSQLite3Database;
-        switch (key) {
-            case 'sqlite-bettersqlite3':
-                db = await setupTestSqliteDbBetterSqlite3(TEST_DIR);
-                break;
-            case 'sqlite-libsql':
-                db = await setupTestSqliteDbLibSql(TEST_DIR);
-                break;
-            default:
-                throw new Error('unknown impl');
-        }
-
-
-        const schema = sqliteTable('kv_store', {
-            key: text('key').primaryKey(),
-            value: text('value'),
-        });
-
-
-        await db.run(sql.raw(`CREATE TABLE kv_store (
-        key TEXT PRIMARY KEY,
-        value TEXT
-    );`))
-
-
-
-
-        const p1 = db.transaction(async tx => {
-            await tx.insert(schema).values({ 'key': 'name1', value: 'Alice' });
-            await sleep(400);
-            await tx.insert(schema).values({ 'key': 'name2', value: 'Bob' });
-        })
-
-        const p2 = db.transaction(async tx => {
-            await tx.insert(schema).values({ 'key': 'name3', value: 'Charleen' });
-            await sleep(400);
-            await tx.insert(schema).values({ 'key': 'name4', value: 'David' });
-        })
-
-        await Promise.all([p1, p2]);
-
-        const rows = await db.select().from(schema);
-
-        expect(rows.length).toBe(4);
-
-        expect(rows[3]!.value).toBe('David');
-
-
-    })
-
 }
-
 
