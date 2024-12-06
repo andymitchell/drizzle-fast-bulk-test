@@ -13,7 +13,7 @@ import Database from 'better-sqlite3';
 import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { QueueMemory, uid } from '@andyrmitchell/utils';
 
-import { CommonDatabases, SchemaFormatDefault, TestDatabases, TestSqlDb, TestSqlDbGeneratorOptions } from './types';
+import type { CommonDatabases, SchemaFormatDefault, TestDatabases, TestSqlDb, TestSqlDbGeneratorOptions } from './types';
 import {ensureDir} from 'fs-extra';
 
 
@@ -44,10 +44,10 @@ const COMMON_DATABASES_TO_DRIZZLEKIT_DIALECT:Record<CommonDatabases, "sqlite" | 
 }
 
 /**
- * It's slow to spin up Pglite, and it's slow to call Drizzle Generate. 
- * This batch creates many partitioned tables (using a unique StoreID for each) in the database in one go (if possible), and offers them out per test. 
+ * It's slow to spin up Pglite, and it's slow to call Drizzle Kit "generate". 
+ * This batch creates many partitioned tables (using a unique StoreID for each) in the database in one go (if possible), and gives a fresh one out per test. 
  * 
- * Note it doesn't create a schema per test, because Sqlite can't do schemas.
+ * Note it doesn't create a schema per test, because Sqlite can't do schemas. Under the hood it's creating table clones with unique names. 
  */
 export class TestSqlDbGenerator<D extends CommonDatabases = CommonDatabases, SF = SchemaFormatDefault> {
 

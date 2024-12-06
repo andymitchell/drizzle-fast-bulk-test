@@ -1,14 +1,8 @@
-import { sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { beforeAll, test } from 'vitest';
 
-import { sql } from "drizzle-orm";
-import { setupTestSqliteDbBetterSqlite3, setupTestSqliteDbLibSql } from "./TestSqlDbGenerator";
-import { sleep } from "@andyrmitchell/utils";
-
 import { clearDir, createTestSqlDbGenerators, getRelativeTestDir } from "./test-helpers";
-import { COMMON_DATABASES, CommonDatabases, SqliteDriverOptions } from "./types";
-import { LibSQLDatabase } from "drizzle-orm/libsql";
-import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import type {  CommonDatabases, SqliteDriverOptions } from "./types";
+
 import {ensureDirSync} from 'fs-extra';
 
 
@@ -48,11 +42,11 @@ function runTests(key:CommonDatabases, sqliteDriver?:SqliteDriverOptions) {
 
         const tdbg = createTestSqlDbGenerators(TEST_DIR, key as 'pg');
 
-        const createSt1 = Date.now();
+        
         const result1 = await tdbg.nextTest();
         const db1 = result1.db;
         const schemas1 = result1.schemas;
-        const createDur1 = Date.now() - createSt1;
+        
 
         const createSt2 = Date.now();
         const result2 = await tdbg.nextTest();

@@ -1,9 +1,9 @@
 import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile";
-import { testTableCreatorPg, TestTablePg } from "./test-table.pg";
-import { testTableCreatorSqlite, TestTableSqlite } from "./test-table.sqlite";
+import { testTableCreatorPg, type TestTablePg } from "./test-table.pg";
+import { testTableCreatorSqlite, type TestTableSqlite } from "./test-table.sqlite";
 import { TestSqlDbGenerator } from "./TestSqlDbGenerator";
-import { CommonDatabases, SqliteDriverOptions } from "./types";
+import type { CommonDatabases, SqliteDriverOptions } from "./types";
 import { fileURLToPath } from 'url';
 
 

@@ -1,6 +1,6 @@
 import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile";
 import { TestSqlDbGenerator } from "./TestSqlDbGenerator";
-import { CommonDatabases, TestDatabases, TestSqlDb } from "./types";
+import type { CommonDatabases, SqliteDriverOptions, TestDatabases, TestSqlDb } from "./types";
 
 export {
     TestSqlDbGenerator,
@@ -10,5 +10,6 @@ export {
 export type {
     TestDatabases,
     TestSqlDb,
-    CommonDatabases
+    CommonDatabases,
+    SqliteDriverOptions
 }
