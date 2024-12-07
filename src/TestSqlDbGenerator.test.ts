@@ -1,9 +1,10 @@
 import { beforeAll, test } from 'vitest';
 
 import { clearDir, createTestSqlDbGenerators, getRelativeTestDir } from "./test-helpers";
-import type {  CommonDatabases, SqliteDriverOptions } from "./types";
+
 
 import {ensureDirSync} from 'fs-extra';
+import type { DdtDialect, DdtSqliteDriver } from '@andyrmitchell/drizzle-dialect-types';
 
 
 
@@ -23,7 +24,7 @@ runTests('pg');
 runTests('sqlite', 'better-sqlite3');
 runTests('sqlite', 'libsql');
 
-function runTests(key:CommonDatabases, sqliteDriver?:SqliteDriverOptions) {
+function runTests(key:DdtDialect, sqliteDriver?:DdtSqliteDriver) {
 
     test(`[${key}] basic works`, async () => {
 

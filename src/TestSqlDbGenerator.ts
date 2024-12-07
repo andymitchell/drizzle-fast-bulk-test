@@ -13,8 +13,9 @@ import Database from 'better-sqlite3';
 import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { QueueMemory, uid } from '@andyrmitchell/utils';
 
-import type { CommonDatabases, SchemaFormatDefault, TestDatabases, TestSqlDb, TestSqlDbGeneratorOptions } from './types';
+import type { SchemaFormatDefault, TestSqlDb, TestSqlDbGeneratorOptions } from './types';
 import {ensureDir} from 'fs-extra';
+import { DDT_DIALECT_TO_DRIZZLEKIT_DIALECT, type DdtDialect, type DdtDialectDatabaseMap } from '@andyrmitchell/drizzle-dialect-types';
 
 
 
@@ -33,15 +34,6 @@ let instanceCount = 0;
 
 
 
-/**
- * Map
- * 
- * Because annoyingly, Drizzle's dialects are different between drizzle-orm and drizzle-kit. 
- */
-const COMMON_DATABASES_TO_DRIZZLEKIT_DIALECT:Record<CommonDatabases, "sqlite" | "postgresql" | "mysql" | "turso"> = {
-    'pg': 'postgresql',
-    'sqlite': 'sqlite'
-}
 
 /**
  * It's slow to spin up Pglite, and it's slow to call Drizzle Kit "generate". 
@@ -49,7 +41,7 @@ const COMMON_DATABASES_TO_DRIZZLEKIT_DIALECT:Record<CommonDatabases, "sqlite" | 
  * 
  * Note it doesn't create a schema per test, because Sqlite can't do schemas. Under the hood it's creating table clones with unique names. 
  */
-export class TestSqlDbGenerator<D extends CommonDatabases = CommonDatabases, SF = SchemaFormatDefault> {
+export class TestSqlDbGenerator<D extends DdtDialect = DdtDialect, SF = SchemaFormatDefault> {
 
     #queue = new QueueMemory('');
     #testDbs:TestSqlDb<D, SF>[] = [];
@@ -115,7 +107,7 @@ export class TestSqlDbGenerator<D extends CommonDatabases = CommonDatabases, SF 
         // Add the schema definitions
         partitionsWithSchemas.forEach(x => {
             this.#testDbs.push({
-                db: db as TestDatabases[D],
+                db: db as DdtDialectDatabaseMap[D],
                 ...x,
                 instance_id: instanceCount++
             })
@@ -145,7 +137,7 @@ export class TestSqlDbGenerator<D extends CommonDatabases = CommonDatabases, SF 
 
 
 
-function createDrizzleConfigFile(testDirAbsolutePath:string, dialect:CommonDatabases, schemaFileAbsolutePaths:string[]) {
+function createDrizzleConfigFile(testDirAbsolutePath:string, dialect:DdtDialect, schemaFileAbsolutePaths:string[]) {
 
     
 
@@ -160,7 +152,7 @@ function createDrizzleConfigFile(testDirAbsolutePath:string, dialect:CommonDatab
 
     // FYI Paths relative to drizzle.config.ts work here because when drizzle-kit is invoked, its working directory is set to testDirAbsolutePath (i.e. where drizzle.config.ts is)
     const drizzleConfig:Config = {
-        dialect: COMMON_DATABASES_TO_DRIZZLEKIT_DIALECT[dialect],
+        dialect: DDT_DIALECT_TO_DRIZZLEKIT_DIALECT[dialect],
         schema: schemaFileAbsolutePaths,
         out: fileIoSyncNode.relative(testDirAbsolutePath, migrationPath)
     }

@@ -3,17 +3,19 @@ import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile";
 import { testTableCreatorPg, type TestTablePg } from "./test-table.pg";
 import { testTableCreatorSqlite, type TestTableSqlite } from "./test-table.sqlite";
 import { TestSqlDbGenerator } from "./TestSqlDbGenerator";
-import type { CommonDatabases, SqliteDriverOptions } from "./types";
+
 import { fileURLToPath } from 'url';
+import type { DdtDialect, DdtSqliteDriver } from "@andyrmitchell/drizzle-dialect-types";
+
 
 
 
 type SqliteOptions = {
-    sqlite_driver?: SqliteDriverOptions
+    sqlite_driver?: DdtSqliteDriver
 }
 export function createTestSqlDbGenerators(testDir:string, dialect:'pg'):TestSqlDbGenerator<'pg', TestTablePg>
 export function createTestSqlDbGenerators(testDir:string, dialect:'sqlite', options?:SqliteOptions):TestSqlDbGenerator<'sqlite', TestTableSqlite>
-export function createTestSqlDbGenerators<D extends CommonDatabases>(testDir:string, dialect:D, options?: SqliteOptions) {
+export function createTestSqlDbGenerators<D extends DdtDialect>(testDir:string, dialect:D, options?: SqliteOptions) {
     switch(dialect) {
         case 'pg':
             return new TestSqlDbGenerator<D, TestTablePg>(

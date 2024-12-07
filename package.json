@@ -35,6 +35,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@andyrmitchell/drizzle-dialect-types": "^0.0.6",
     "@andyrmitchell/file-io": "^0.10.12",
     "@andyrmitchell/utils": "^0.7.6",
     "@electric-sql/pglite": "^0.2.14",
