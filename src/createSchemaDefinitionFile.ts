@@ -48,7 +48,7 @@ type Options = {
  * @param storeIds Create a schema for each entry in a batch
  * @returns 
  */
-export function createSchemaDefinitionFile(options:Options, storeIds: string[]) {
+export function createSchemaDefinitionFile(options:Options, storeIds: string[], extension: '.ts' | '.js' | '' = '.ts') {
 
     // Get the package root that will contain sqlSchemaCreator.ts, then find it
     const rootDir = getPackageDirectorySync({
@@ -63,7 +63,7 @@ export function createSchemaDefinitionFile(options:Options, storeIds: string[]) 
     const importUrl = fileIoSyncNode.relative(options.test_dir_absolute_path, sqlSchemaCreatorFile.uri);
 
     let content = `
-import ${options.table_creator_import.import_name} from "${importUrl.replace(/\.(t|j)s$/, '')}";
+import ${options.table_creator_import.import_name} from "${importUrl.replace(/\.(t|j)s$/, '')}${extension}";
 
 ${options.table_creator_invocation(storeIds)}
 
