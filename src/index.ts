@@ -1,7 +1,7 @@
 import type { DdtDialect, DdtDialectDatabaseMap, DdtSqliteDriver } from "@andyrmitchell/drizzle-dialect-types";
-import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile";
-import { TestSqlDbGenerator } from "./TestSqlDbGenerator";
-import type {  TestSqlDb } from "./types";
+import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile.js";
+import { TestSqlDbGenerator } from "./TestSqlDbGenerator.js";
+import type {  TestSqlDb } from "./types.js";
 
 export {
     TestSqlDbGenerator,

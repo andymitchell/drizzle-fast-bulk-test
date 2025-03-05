@@ -48,7 +48,7 @@ type Options = {
  * @param storeIds Create a schema for each entry in a batch
  * @returns 
  */
-export function createSchemaDefinitionFile(options:Options, storeIds: string[], extension: '.ts' | '.js' | '' = '.ts') {
+export function createSchemaDefinitionFile(options:Options, storeIds: string[], extension: '.ts' | '.js' | '' = '') {
 
     // Get the package root that will contain sqlSchemaCreator.ts, then find it
     const rootDir = getPackageDirectorySync({

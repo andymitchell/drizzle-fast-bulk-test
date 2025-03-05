@@ -1,8 +1,8 @@
 import { fileIoSyncNode } from "@andyrmitchell/file-io";
-import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile";
-import { testTableCreatorPg, type TestTablePg } from "./test-table.pg";
-import { testTableCreatorSqlite, type TestTableSqlite } from "./test-table.sqlite";
-import { TestSqlDbGenerator } from "./TestSqlDbGenerator";
+import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile.js";
+import { testTableCreatorPg, type TestTablePg } from "./test-table.pg.js";
+import { testTableCreatorSqlite, type TestTableSqlite } from "./test-table.sqlite.js";
+import { TestSqlDbGenerator } from "./TestSqlDbGenerator.js";
 
 import { fileURLToPath } from 'url';
 import type { DdtDialect, DdtSqliteDriver } from "@andyrmitchell/drizzle-dialect-types";

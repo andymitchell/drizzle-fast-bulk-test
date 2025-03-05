@@ -11,9 +11,11 @@ import {BetterSQLite3Database, drizzle as drizzleBetterSqlite} from 'drizzle-orm
 import { migrate as migrateBetterSqlite} from 'drizzle-orm/better-sqlite3/migrator';
 import Database from 'better-sqlite3';
 import { fileIoSyncNode } from "@andyrmitchell/file-io";
-import { QueueMemory, uid } from '@andyrmitchell/utils';
+import { QueueMemory } from '@andyrmitchell/utils/queue';
+import { uid } from '@andyrmitchell/utils/uid';
 
-import type { SchemaFormatDefault, TestSqlDb, TestSqlDbGeneratorOptions } from './types';
+
+import type { SchemaFormatDefault, TestSqlDb, TestSqlDbGeneratorOptions } from './types.js';
 import {ensureDir} from 'fs-extra';
 import { DDT_DIALECT_TO_DRIZZLEKIT_DIALECT, type DdtDialect, type DdtDialectDatabaseMap } from '@andyrmitchell/drizzle-dialect-types';
 

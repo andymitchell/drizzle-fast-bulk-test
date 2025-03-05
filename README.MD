@@ -62,3 +62,11 @@ test('Your test', () => {
 })
 
 ```
+
+# Troubleshooting
+
+## In a typescript ESM project, drizzle-kit errors with MODULE_NOT_FOUND
+
+This happens because drizzle-kit doesn't fully support ESM-only formats. 
+
+So when this package generates files for drizzle-kit to run (using `createSchemaDefinitionFile`), if the imports have '.js' (as is normal for ESM typescript files), drizzle-kit will fail. 

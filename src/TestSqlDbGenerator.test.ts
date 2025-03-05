@@ -1,6 +1,6 @@
 import { beforeAll, test } from 'vitest';
 
-import { clearDir, createTestSqlDbGenerators, getRelativeTestDir } from "./test-helpers";
+import { clearDir, createTestSqlDbGenerators, getRelativeTestDir } from "./test-helpers.js";
 
 
 import {ensureDirSync} from 'fs-extra';

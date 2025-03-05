@@ -35,9 +35,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@andyrmitchell/drizzle-dialect-types": "^0.0.6",
+    "@andyrmitchell/drizzle-dialect-types": "^0.0.8",
     "@andyrmitchell/file-io": "^0.10.12",
-    "@andyrmitchell/utils": "^0.7.6",
+    "@andyrmitchell/utils": "^0.11.1",
     "@electric-sql/pglite": "^0.2.14",
     "@libsql/client": "^0.14.0",
     "better-sqlite3": "^11.6.0",
@@ -53,6 +53,6 @@
     "@types/uuid": "^9.0.8",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^3.0.7"
   }
 }
