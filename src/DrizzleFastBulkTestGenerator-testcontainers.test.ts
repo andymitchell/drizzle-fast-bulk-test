@@ -8,7 +8,7 @@ import type { DdtDialect, DdtSqliteDriver } from '@andyrmitchell/drizzle-dialect
 
 
 
-const TEST_DIR = getRelativeTestDir(import.meta.url, 'test-schemas/main');
+const TEST_DIR = getRelativeTestDir(import.meta.url, 'test-schemas/main-testcontainers');
 
 beforeAll(() => {
     vi.setConfig({ testTimeout: 60000 }) // Test Containers need a long time to run 
