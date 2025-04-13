@@ -1,6 +1,6 @@
 import { beforeAll, test } from 'vitest';
 
-import { clearDir, createTestSqlDbGenerators, getRelativeTestDir } from "./test-helpers.js";
+import { clearDir, createDrizzleFastBulkTestGenerators, getRelativeTestDir } from "./test-helpers.js";
 
 
 import {ensureDirSync} from 'fs-extra';
@@ -28,7 +28,7 @@ function runTests(key:DdtDialect, sqliteDriver?:DdtSqliteDriver) {
 
     test(`[${key}] basic works`, async () => {
 
-        const tdbg = createTestSqlDbGenerators(TEST_DIR, key as 'pg');
+        const tdbg = createDrizzleFastBulkTestGenerators(TEST_DIR, key as 'pg', 'pglite');
         const { db, schemas } = await tdbg.nextTest();
 
         await db.insert(schemas).values({ name: 'Alice', age: 1 });
@@ -41,7 +41,7 @@ function runTests(key:DdtDialect, sqliteDriver?:DdtSqliteDriver) {
     test(`[${key}] reuse db and data is partitioned into schemas`, async () => {
 
 
-        const tdbg = createTestSqlDbGenerators(TEST_DIR, key as 'pg');
+        const tdbg = createDrizzleFastBulkTestGenerators(TEST_DIR, key as 'pg', 'pglite');
 
         
         const result1 = await tdbg.nextTest();

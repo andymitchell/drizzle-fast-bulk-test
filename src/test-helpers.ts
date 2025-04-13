@@ -2,26 +2,28 @@ import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile.js";
 import { testTableCreatorPg, type TestTablePg } from "./test-table.pg.js";
 import { testTableCreatorSqlite, type TestTableSqlite } from "./test-table.sqlite.js";
-import { TestSqlDbGenerator } from "./TestSqlDbGenerator.js";
+import { DrizzleFastBulkTestGenerator } from "./DrizzleFastBulkTestGenerator.js";
 
 import { fileURLToPath } from 'url';
-import type { DdtDialect, DdtSqliteDriver } from "@andyrmitchell/drizzle-dialect-types";
+import type { DdtDialect } from "@andyrmitchell/drizzle-dialect-types";
+import type { DdtDialectDriver } from "./types.js";
 
 
 
-
-type SqliteOptions = {
-    sqlite_driver?: DdtSqliteDriver
-}
-export function createTestSqlDbGenerators(testDir:string, dialect:'pg'):TestSqlDbGenerator<'pg', TestTablePg>
-export function createTestSqlDbGenerators(testDir:string, dialect:'sqlite', options?:SqliteOptions):TestSqlDbGenerator<'sqlite', TestTableSqlite>
-export function createTestSqlDbGenerators<D extends DdtDialect>(testDir:string, dialect:D, options?: SqliteOptions) {
+export function createDrizzleFastBulkTestGenerators(testDir:string, dialect:'pg', driver: 'pglite'):DrizzleFastBulkTestGenerator<'pg', 'pglite', TestTablePg>
+export function createDrizzleFastBulkTestGenerators(testDir:string, dialect:'pg', driver: 'postgres'):DrizzleFastBulkTestGenerator<'pg', 'postgres', TestTablePg>
+export function createDrizzleFastBulkTestGenerators(testDir:string, dialect:'sqlite', driver: 'libsql'):DrizzleFastBulkTestGenerator<'sqlite', 'libsql', TestTablePg>
+export function createDrizzleFastBulkTestGenerators(testDir:string, dialect:'sqlite', driver: 'better-sqlite3'):DrizzleFastBulkTestGenerator<'sqlite', 'better-sqlite3', TestTablePg>
+export function createDrizzleFastBulkTestGenerators<D extends DdtDialect, DR extends DdtDialectDriver>(testDir:string, dialect:D, driver: DR) {
     switch(dialect) {
         case 'pg':
-            return new TestSqlDbGenerator<D, TestTablePg>(
+            return new DrizzleFastBulkTestGenerator<D, DR, TestTablePg>(
                 testDir, 
                 {
-                    dialect,
+                    db: {
+                        dialect,
+                        driver
+                    },
                     batch_size: 5,
                     generate_schemas_for_batch: async (batchPositions, batchTestDirAbsolutePath) => {
                         
@@ -55,12 +57,14 @@ export function createTestSqlDbGenerators<D extends DdtDialect>(testDir:string, 
                 }
             );
         case 'sqlite':
-            return new TestSqlDbGenerator<D, TestTableSqlite>(
+            return new DrizzleFastBulkTestGenerator<D, DR, TestTableSqlite>(
                 testDir, 
                 {
-                    dialect,
+                    db: {
+                        dialect,
+                        driver
+                    },
                     batch_size: 5,
-                    sqlite_driver: options?.sqlite_driver,
                     generate_schemas_for_batch: async (batchPositions, batchTestDirAbsolutePath) => {
                         
                         const partitioned_schemas = batchPositions.map(batch_position => {

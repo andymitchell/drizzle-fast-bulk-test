@@ -3,21 +3,26 @@ import * as path from 'path';
 import type { Config } from "drizzle-kit";
 import { PGlite } from "@electric-sql/pglite";
 import { createClient } from '@libsql/client';
-import { migrate as migratePg } from "drizzle-orm/pglite/migrator";
+import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
+import { migrate as migratePostgres } from "drizzle-orm/postgres-js/migrator";
 import { migrate as migrateLibsql } from 'drizzle-orm/libsql/migrator';
-import { drizzle as drizzlePg, PgliteDatabase } from "drizzle-orm/pglite";
-import { drizzle as drizzleLibsql, LibSQLDatabase } from 'drizzle-orm/libsql';
-import {BetterSQLite3Database, drizzle as drizzleBetterSqlite} from 'drizzle-orm/better-sqlite3';
+import { drizzle as drizzlePglite } from "drizzle-orm/pglite";
+import { drizzle as drizzlePostgres } from 'drizzle-orm/postgres-js';
+import { drizzle as drizzleLibsql } from 'drizzle-orm/libsql';
+import { drizzle as drizzleBetterSqlite} from 'drizzle-orm/better-sqlite3';
 import { migrate as migrateBetterSqlite} from 'drizzle-orm/better-sqlite3/migrator';
 import Database from 'better-sqlite3';
 import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { QueueMemory } from '@andyrmitchell/utils/queue';
 import { uid } from '@andyrmitchell/utils/uid';
+import {PostgreSqlContainer} from "@testcontainers/postgresql";
 
 
-import type { SchemaFormatDefault, TestSqlDb, TestSqlDbGeneratorOptions } from './types.js';
+import type {  SchemaFormatDefault, TestSqlDb, DrizzleFastBulkTestGeneratorOptions, CreatedDbByDialectAndDriver, DdtDialectDriver } from './types.js';
 import {ensureDir} from 'fs-extra';
-import { DDT_DIALECT_TO_DRIZZLEKIT_DIALECT, type DdtDialect, type DdtDialectDatabaseMap } from '@andyrmitchell/drizzle-dialect-types';
+import { DDT_DIALECT_TO_DRIZZLEKIT_DIALECT, type DdtDialect } from '@andyrmitchell/drizzle-dialect-types';
+import postgres from 'postgres';
+import type { PgDatabase } from 'drizzle-orm/pg-core';
 
 
 
@@ -38,21 +43,34 @@ let instanceCount = 0;
 
 
 /**
- * It's slow to spin up Pglite, and it's slow to call Drizzle Kit "generate". 
- * This batch creates many partitioned tables (using a unique StoreID for each) in the database in one go (if possible), and gives a fresh one out per test. 
+ * Often tests need to work off the same baseline schema (e.g. PostgresRmw in Store which uses a single 'objects' schema for 100s of tests).
+ * 
+ * It's slow to spin up a Postgres DB (Pglite or Test Container's Postgres) per test, and it's slow to call Drizzle Kit "generate". 
+ * 
+ * This will bulk create many 'databases' with the same schema. 
+ * 
+ * ### How it works
+ * 
+ * It's a trick that the 'database' is really a single real database, where the tables in the schema are cloned with unique names. This effectively creates isolated partitions that are indistinguishable from a separate database. 
  * 
  * Note it doesn't create a schema per test, because Sqlite can't do schemas. Under the hood it's creating table clones with unique names. 
+ * 
+ * ### The two main functions
+ * 
+ * `generate_schemas_for_batch` is passed in to the constructor, and for each `batch_position` generates Drizzle schemas instance for the tables (typically by giving them a name prefix that includes `batch_position`)
+ * 
+ * `nextTest` returns the next unused batch_position Drizzle schemas instance (with it's unique table names). Again, the exact format is up to the consumer.
  */
-export class TestSqlDbGenerator<D extends DdtDialect = DdtDialect, SF = SchemaFormatDefault> {
+export class DrizzleFastBulkTestGenerator<D extends DdtDialect = DdtDialect, DR extends DdtDialectDriver = DdtDialectDriver, SF = SchemaFormatDefault> {
 
     #queue = new QueueMemory('');
-    #testDbs:TestSqlDb<D, SF>[] = [];
+    #testDbs:TestSqlDb<D, DR, SF>[] = [];
     #testDirAbsolutePath: string;
-    #options:TestSqlDbGeneratorOptions<SF>;
+    #options:DrizzleFastBulkTestGeneratorOptions<SF>;
     #batchCount = 0;
     
 
-    constructor(testDirAbsolutePath:string, options:TestSqlDbGeneratorOptions) {
+    constructor(testDirAbsolutePath:string, options:DrizzleFastBulkTestGeneratorOptions) {
         this.#testDirAbsolutePath = testDirAbsolutePath;
         this.#options = options;
     }
@@ -81,7 +99,7 @@ export class TestSqlDbGenerator<D extends DdtDialect = DdtDialect, SF = SchemaFo
 
 
         //const schemaFileAbsolutePath = createSchemaDefinitionFile<I>(testDirAbsolutePath, partitions.map(x => x.store_id), this.#implementation);
-        const drizzlePaths = createDrizzleConfigFile(testDirAbsolutePath, this.#options.dialect, schemaFileAbsolutePaths); // partitions.map(x => x.absolute_path)
+        const drizzlePaths = createDrizzleConfigFile(testDirAbsolutePath, this.#options.db.dialect, schemaFileAbsolutePaths); // partitions.map(x => x.absolute_path)
 
 
         // Let drizzle generate the SQL for all the schemas and tables 
@@ -89,16 +107,24 @@ export class TestSqlDbGenerator<D extends DdtDialect = DdtDialect, SF = SchemaFo
 
 
         // Generate the db: 
-        let db:PgliteDatabase<any> | LibSQLDatabase | BetterSQLite3Database;
-        switch(this.#options.dialect) {
+        
+        let resultDb: CreatedDbByDialectAndDriver<D, DR>;
+        //let db:PgliteDatabase<any> | PostgresJsDatabase<any> | LibSQLDatabase | BetterSQLite3Database;
+        //let client:DbClient | undefined;
+        switch(this.#options.db.dialect) {
             case 'pg':
-                db = await setupTestPgDb(drizzlePaths.migration_path);
+                if( this.#options.db.driver==='postgres' ) {
+                    resultDb = await setupTestPostgresDb(drizzlePaths.migration_path) as CreatedDbByDialectAndDriver<D, DR>;
+                    
+                } else {
+                    resultDb = await setupTestPgliteDb(drizzlePaths.migration_path) as CreatedDbByDialectAndDriver<D, DR>;
+                }
                 break;
             case 'sqlite':
-                if( this.#options?.sqlite_driver==='libsql' ) {
-                    db = await setupTestSqliteDbLibSql(testDirAbsolutePath, drizzlePaths.migration_path);
+                if( this.#options.db.driver==='libsql' ) {
+                    resultDb = await setupTestSqliteDbLibSql(testDirAbsolutePath, drizzlePaths.migration_path) as CreatedDbByDialectAndDriver<D, DR>;
                 } else {
-                    db = await setupTestSqliteDbBetterSqlite3(testDirAbsolutePath, drizzlePaths.migration_path);
+                    resultDb = await setupTestSqliteDbBetterSqlite3(testDirAbsolutePath, drizzlePaths.migration_path) as CreatedDbByDialectAndDriver<D, DR>;
                 }
                 break;
             default: 
@@ -106,11 +132,12 @@ export class TestSqlDbGenerator<D extends DdtDialect = DdtDialect, SF = SchemaFo
         }
 
 
+        //const {db, client, closeConnection} = resultDb;
         // Add the schema definitions
         partitionsWithSchemas.forEach(x => {
             this.#testDbs.push({
-                db: db as DdtDialectDatabaseMap[D],
                 ...x,
+                ...resultDb,
                 instance_id: instanceCount++
             })
         });
@@ -119,6 +146,12 @@ export class TestSqlDbGenerator<D extends DdtDialect = DdtDialect, SF = SchemaFo
     }
 
 
+    /**
+     * Give access to the shared db, and the specific schemas of the next test (where those schemas are what you made for a single `batch_position` in `generate_schemas_for_batch` )
+     * 
+     * 
+     * @returns 
+     */
     async nextTest() {
 
         return this.#queue.enqueue(async () => {
@@ -134,6 +167,16 @@ export class TestSqlDbGenerator<D extends DdtDialect = DdtDialect, SF = SchemaFo
         })
 
         
+    }
+
+    /**
+     * Close all database connections (via their clients)
+     * @returns 
+     */
+    async closeAllConnections() {
+        return Promise.all(this.#testDbs.map(x => {
+            return x.closeConnection()
+        }))
     }
 }
 
@@ -179,25 +222,51 @@ function runDrizzleKit(testDirAbsolutePath:string, drizzleConfigFileAbsolutePath
 
 
 
-async function setupTestPgDb(migrationsFolder: string, existingDb?: PgliteDatabase<any>) {
-    let db:PgliteDatabase<any>;
-    if( existingDb ) {
-        db = existingDb;
-    } else {
-        const client = new PGlite();
-        db = drizzlePg(client);
-    }
+async function setupTestPgliteDb(migrationsFolder: string):Promise<CreatedDbByDialectAndDriver<"pg", "pglite">> {
+
+    const client = new PGlite();
+    
+    const db = drizzlePglite(client);
+
 
     
-    await migratePg(db, {
+    await migratePglite(db, {
         'migrationsFolder': migrationsFolder
     });
     
 
-    return db;
+    return {dialect: 'pg', driver: 'pglite', db, client, closeConnection: async () => await client.close()};
 }
 
-export async function setupTestSqliteDbLibSql(testDirAbsolutePath:string, migrationsFolder?: string) {
+
+async function setupTestPostgresDb(migrationsFolder: string):Promise<CreatedDbByDialectAndDriver<"pg", "postgres">> {
+
+    const postgresContainer = await new PostgreSqlContainer().start();
+
+    let db:PgDatabase<any>;
+    let client:postgres.Sql;
+    
+
+    client = postgres(postgresContainer.getConnectionUri());
+    db = drizzlePostgres({client});
+
+    // TODO Return client and add it to the batch object. Have a way to dispose all connections in the test (or retrieve them so the outsider can do it).
+
+    await migratePostgres(db, {
+        'migrationsFolder': migrationsFolder
+    });
+    
+
+    return {
+        dialect: 'pg',
+        driver: 'postgres',
+        db,
+        client,
+        closeConnection: async () => await client.end({timeout: 5})
+    };
+}
+
+export async function setupTestSqliteDbLibSql(testDirAbsolutePath:string, migrationsFolder?: string):Promise<CreatedDbByDialectAndDriver<"sqlite", "libsql">> {
     
     
     
@@ -217,6 +286,7 @@ export async function setupTestSqliteDbLibSql(testDirAbsolutePath:string, migrat
     const client = createClient({
         url
     });
+    
 
     const result = await client.execute('PRAGMA journal_mode;');
     if( result.rows[0]!.journal_mode!=='wal' ) {
@@ -234,12 +304,18 @@ export async function setupTestSqliteDbLibSql(testDirAbsolutePath:string, migrat
         });
     }
 
-    return db;
+    return {
+        dialect: 'sqlite',
+        driver: 'libsql',
+        db, 
+        client,
+        closeConnection: async () => client.close()
+    };
 }
 
 
 
-export async function setupTestSqliteDbBetterSqlite3(testDirAbsolutePath:string, migrationsFolder?: string) {
+export async function setupTestSqliteDbBetterSqlite3(testDirAbsolutePath:string, migrationsFolder?: string):Promise<CreatedDbByDialectAndDriver<"sqlite", "better-sqlite3">> {
     
 
     const url = `${testDirAbsolutePath}/test-${uid()}.db` // Switched to eliminate possible resets with connection drops 
@@ -256,6 +332,14 @@ export async function setupTestSqliteDbBetterSqlite3(testDirAbsolutePath:string,
         });
     }
 
-    return db;
+    return {
+        dialect: 'sqlite',
+        driver: 'better-sqlite3',
+        db, 
+        client,
+        closeConnection: async () => {
+            client.close()
+        }
+    };
 }
 

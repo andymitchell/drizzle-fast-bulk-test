@@ -17,7 +17,7 @@ Then each test calls `.nextTest()`, which returns the batch's database, and the 
 Example: 
 
 ```typescript
-const tdbg = new TestSqlDbGenerator<'pg', TestTablePg>(
+const tdbg = new DrizzleFastBulkTestGenerator<'pg', TestTablePg>(
     TEST_DIR, 
     {
         dialect: 'pg',
