@@ -1,7 +1,7 @@
 import type { DdtDialect, DdtDialectDatabaseMap } from "@andyrmitchell/drizzle-dialect-types";
 import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile.js";
 import { DrizzleFastBulkTestGenerator } from "./DrizzleFastBulkTestGenerator.js";
-import type {  DdtDialectDriver, TestSqlDb } from "./types.js";
+import type {  DdtDialectDriver, ExpectedDb, TestSqlDb } from "./types.js";
 
 export {
     DrizzleFastBulkTestGenerator,
@@ -15,5 +15,6 @@ export type {
 export type {
     DdtDialectDatabaseMap,
     DdtDialect,
-    DdtDialectDriver
+    DdtDialectDriver,
+    ExpectedDb
 }
