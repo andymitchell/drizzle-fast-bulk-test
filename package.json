@@ -40,7 +40,7 @@
     "@andyrmitchell/utils": "^0.21.1",
     "drizzle-kit": "^0.29.0",
     "drizzle-orm": "^0.36.4",
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.3.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
@@ -51,10 +51,10 @@
     "vitest": "^3.2.4"
   },
   "peerDependencies": {
-    "@testcontainers/postgresql": "^11.3.1",
-    "postgres": "^3.4.7",
     "@electric-sql/pglite": "^0.3.5",
     "@libsql/client": "^0.15.10",
-    "better-sqlite3": "^12.2.0"
+    "@testcontainers/postgresql": "^11.3.1",
+    "better-sqlite3": "^12.2.0",
+    "postgres": "^3.4.7"
   }
 }
