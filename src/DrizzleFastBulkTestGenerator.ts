@@ -19,7 +19,7 @@ import {PostgreSqlContainer, StartedPostgreSqlContainer} from "@testcontainers/p
 
 
 import type {  SchemaFormatDefault, TestSqlDb, DrizzleFastBulkTestGeneratorOptions, CreatedDbByDialectAndDriver, DdtDialectDriver } from './types.js';
-import {ensureDir} from 'fs-extra';
+import {ensureDir, ensureDirSync} from 'fs-extra';
 import { DDT_DIALECT_TO_DRIZZLEKIT_DIALECT, type DdtDialect } from '@andyrmitchell/drizzle-dialect-types';
 import postgres from 'postgres';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
@@ -86,7 +86,7 @@ export class DrizzleFastBulkTestGenerator<D extends DdtDialect = DdtDialect, DR 
         clearDir(testDirAbsolutePath)
         await sleep(5);
         if(this.#options.verbose) console.log("migrateBatch dir cleared; will now ensureDir");
-        await ensureDir(testDirAbsolutePath);
+        ensureDirSync(testDirAbsolutePath);
         if(this.#options.verbose) console.log("migrateBatch directories set up");
 
 
