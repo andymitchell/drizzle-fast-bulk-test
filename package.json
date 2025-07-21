@@ -38,9 +38,6 @@
     "@andyrmitchell/drizzle-dialect-types": "^0.0.9",
     "@andyrmitchell/file-io": "^0.10.12",
     "@andyrmitchell/utils": "^0.21.1",
-    "@electric-sql/pglite": "^0.3.5",
-    "@libsql/client": "^0.15.10",
-    "better-sqlite3": "^12.2.0",
     "drizzle-kit": "^0.29.0",
     "drizzle-orm": "^0.36.4",
     "fs-extra": "^11.2.0"
@@ -55,6 +52,9 @@
   },
   "peerDependencies": {
     "@testcontainers/postgresql": "^11.3.1",
-    "postgres": "^3.4.7"
+    "postgres": "^3.4.7",
+    "@electric-sql/pglite": "^0.3.5",
+    "@libsql/client": "^0.15.10",
+    "better-sqlite3": "^12.2.0"
   }
 }
