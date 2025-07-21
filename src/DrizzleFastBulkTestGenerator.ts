@@ -16,14 +16,13 @@ import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { QueueMemory } from '@andyrmitchell/utils/queue';
 import { uid } from '@andyrmitchell/utils/uid';
 import {PostgreSqlContainer, StartedPostgreSqlContainer} from "@testcontainers/postgresql";
-
+import { existsSync, mkdirSync, rmdirSync } from 'node:fs';
 
 import type {  SchemaFormatDefault, TestSqlDb, DrizzleFastBulkTestGeneratorOptions, CreatedDbByDialectAndDriver, DdtDialectDriver } from './types.js';
-import { ensureDirSync} from 'fs-extra';
 import { DDT_DIALECT_TO_DRIZZLEKIT_DIALECT, type DdtDialect } from '@andyrmitchell/drizzle-dialect-types';
 import postgres from 'postgres';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
-import { sleep } from '@andyrmitchell/utils';
+
 
 
 
@@ -31,8 +30,8 @@ import { sleep } from '@andyrmitchell/utils';
 function clearDir(testDir:string):void {
 
 
-    if( fileIoSyncNode.has_directory(testDir) ) {
-        fileIoSyncNode.remove_directory(testDir, true);
+    if (existsSync(testDir)) {
+        rmdirSync(testDir, { recursive: true });
     }
 
 }
@@ -84,10 +83,9 @@ export class DrizzleFastBulkTestGenerator<D extends DdtDialect = DdtDialect, DR 
         
         if(this.#options.verbose) console.log("migrateBatch check dir: "+testDirAbsolutePath);
         clearDir(testDirAbsolutePath)
-        await sleep(5);
         if(this.#options.verbose) console.log("migrateBatch dir cleared; will now ensureDir");
-        ensureDirSync(testDirAbsolutePath);
-        if(this.#options.verbose) console.log("migrateBatch directories set up");
+        const mkdirResult = mkdirSync(testDirAbsolutePath, {recursive: true})
+        if(this.#options.verbose) console.log("migrateBatch directories set up: "+mkdirResult);
 
 
         let partitions:{batch_position: number}[] = [];

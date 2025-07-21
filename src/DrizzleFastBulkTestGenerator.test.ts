@@ -101,7 +101,8 @@ test('regression', async () => {
             // @ts-ignore
             generate_schemas_for_batch: async (batchPositions:number[], batchTestDirAbsolutePath:string) => {
                 pwt.trigger();
-            }
+            },
+            verbose: true
         }
     );
     
