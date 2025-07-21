@@ -244,7 +244,7 @@ async function setupTestPostgresDb(migrationsFolder: string):Promise<CreatedDbBy
 
     let postgresContainer:StartedPostgreSqlContainer;
     try {
-        // More at https://hub.docker.com/_/postgres 
+        // More at https://hub.docker.com/_/postgres . You can also use 'latest'.
         postgresContainer = await new PostgreSqlContainer('postgres:16.9-alpine').start();
     } catch(e) {
         if( e instanceof Error ) {
