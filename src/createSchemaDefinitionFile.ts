@@ -37,6 +37,8 @@ type Options = {
      * @returns The string form of a function. E.g. tableCreator('storeId1'); tableCreator('storeId2')
      */
     table_creator_invocation: (storeIds:string[]) => string
+
+    verbose?: boolean
 }
 
 /**
@@ -50,14 +52,19 @@ type Options = {
  */
 export function createSchemaDefinitionFile(options:Options, storeIds: string[], extension: '.ts' | '.js' | '' = '') {
 
+    if( options.verbose ) console.log('createSchemaDefinitionFile', {storeIds});
     // Get the package root that will contain sqlSchemaCreator.ts, then find it
     const rootDir = getPackageDirectorySync({
         target: 'closest-directory',
         dir: options.test_dir_absolute_path
     });
+
+    if( options.verbose ) console.log('createSchemaDefinitionFile got package dir: ', rootDir);
+    
     
     const file_pattern = options.table_creator_import.link_file_pattern instanceof RegExp? options.table_creator_import.link_file_pattern : new RegExp(options.table_creator_import.link_file_pattern);
     const files = fileIoSyncNode.list_files(rootDir, {recurse: true, file_pattern});
+    if( options.verbose ) console.log('createSchemaDefinitionFile listed files ', {files});
     const sqlSchemaCreatorFile = files[0]!;
 
     const importUrl = fileIoSyncNode.relative(options.test_dir_absolute_path, sqlSchemaCreatorFile.uri);
@@ -74,6 +81,8 @@ ${options.table_creator_invocation(storeIds)}
     const schemaFileName = `schema_${storeIdName}.ts`;
     const targetFile = path.join(options.test_dir_absolute_path, schemaFileName);
     
+    if( options.verbose ) console.log('createSchemaDefinitionFile writing file', targetFile);
+
     fileIoSyncNode.write(targetFile, content, {overwrite: true});
 
     return targetFile;
