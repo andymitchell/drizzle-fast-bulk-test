@@ -5,6 +5,8 @@ import { clearDir, createDrizzleFastBulkTestGenerators, getRelativeTestDir } fro
 
 import {ensureDirSync} from 'fs-extra';
 import type { DdtDialect, DdtSqliteDriver } from '@andyrmitchell/drizzle-dialect-types';
+import { DrizzleFastBulkTestGenerator } from './DrizzleFastBulkTestGenerator.js';
+import { promiseWithTrigger } from '@andyrmitchell/utils';
 
 
 
@@ -37,6 +39,8 @@ function runTests(key:DdtDialect, sqliteDriver?:DdtSqliteDriver) {
         expect(rows[0]!.name).toBe('Alice');
 
     })
+
+    
 
     test(`[${key}] reuse db and data is partitioned into schemas`, async () => {
 
@@ -81,3 +85,36 @@ function runTests(key:DdtDialect, sqliteDriver?:DdtSqliteDriver) {
 
 }
 
+test('regression', async () => {
+
+
+    const pwt = promiseWithTrigger<void>(5000);
+
+    const tdbg = new DrizzleFastBulkTestGenerator(
+        TEST_DIR, 
+        {
+            db: {
+                dialect: 'pg',
+                driver: 'pglite'
+            },
+            batch_size: 1,
+            // @ts-ignore
+            generate_schemas_for_batch: async (batchPositions:number[], batchTestDirAbsolutePath:string) => {
+                pwt.trigger();
+            }
+        }
+    );
+    
+    setTimeout(async () => {
+        try {
+            await tdbg.nextTest();
+        } catch(e) {}
+    }, 0);
+    
+
+    await pwt.promise;
+
+    
+    
+
+})

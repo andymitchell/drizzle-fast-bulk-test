@@ -91,6 +91,8 @@ export type DrizzleFastBulkTestGeneratorOptions<SF = any> = {
     batch_size: number,
 
     db: ExpectedDb
+
+    verbose?: boolean
     
 }
 

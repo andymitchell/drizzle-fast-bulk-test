@@ -76,11 +76,16 @@ export class DrizzleFastBulkTestGenerator<D extends DdtDialect = DdtDialect, DR 
     }
 
     async #migrateBatch() {
+        if(this.#options.verbose) console.log("migrateBatch");
         let batchSize = this.#options.batch_size;
         const testDirAbsolutePath = `${this.#testDirAbsolutePath}/b${this.#batchCount++}_${uid()}`;
 
+        
+        if(this.#options.verbose) console.log("migrateBatch check dir: "+testDirAbsolutePath);
         clearDir(testDirAbsolutePath)
         await ensureDir(testDirAbsolutePath);
+
+        if(this.#options.verbose) console.log("migrateBatch directories set up");
 
 
         let partitions:{batch_position: number}[] = [];
@@ -93,7 +98,9 @@ export class DrizzleFastBulkTestGenerator<D extends DdtDialect = DdtDialect, DR 
 
         // Create the schema definition file
         let schemaFileAbsolutePaths:string[] = [];
+        if(this.#options.verbose) console.log("migrateBatch callback generate schemas for batch");
         const result = await this.#options.generate_schemas_for_batch(partitions.map(x => x.batch_position), testDirAbsolutePath);
+        if(this.#options.verbose) console.log("migrateBatch generated schemas for batch");
         const partitionsWithSchemas = result.partitioned_schemas;
         schemaFileAbsolutePaths = [result.migration_file_absolute_path];
 
@@ -107,6 +114,7 @@ export class DrizzleFastBulkTestGenerator<D extends DdtDialect = DdtDialect, DR 
 
 
         // Generate the db: 
+        if(this.#options.verbose) console.log("migrateBatch now generate the db");
         
         let resultDb: CreatedDbByDialectAndDriver<D, DR>;
         //let db:PgliteDatabase<any> | PostgresJsDatabase<any> | LibSQLDatabase | BetterSQLite3Database;
@@ -154,14 +162,18 @@ export class DrizzleFastBulkTestGenerator<D extends DdtDialect = DdtDialect, DR 
      */
     async nextTest() {
 
+        if(this.#options.verbose) console.log("nextTest queued");
         return this.#queue.enqueue(async () => {
+            if(this.#options.verbose) console.log("nextTest running");
             let firstAvailable = this.#testDbs.find(x => !x.used);
             if( !firstAvailable ) {
+                if(this.#options.verbose) console.log("nextTest will now migrateBatch");
                 await this.#migrateBatch();
                 firstAvailable = this.#testDbs.find(x => !x.used);
                 if( !firstAvailable ) throw new Error("noop - firstAvailable should be present. Race condition?");
             }
 
+            if(this.#options.verbose) console.log("nextTest firstAvailable ready");
             firstAvailable.used = true;
             return firstAvailable;
         })
