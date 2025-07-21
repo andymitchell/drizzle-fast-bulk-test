@@ -1,6 +1,6 @@
 {
   "name": "@andyrmitchell/drizzle-fast-bulk-test",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Bulk create local Drizzle databases for faster, cleaner tests.",
   "type": "module",
   "exports": {
