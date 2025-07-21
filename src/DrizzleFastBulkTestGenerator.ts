@@ -19,7 +19,7 @@ import {PostgreSqlContainer, StartedPostgreSqlContainer} from "@testcontainers/p
 
 
 import type {  SchemaFormatDefault, TestSqlDb, DrizzleFastBulkTestGeneratorOptions, CreatedDbByDialectAndDriver, DdtDialectDriver } from './types.js';
-import {ensureDir, ensureDirSync} from 'fs-extra';
+import { ensureDirSync} from 'fs-extra';
 import { DDT_DIALECT_TO_DRIZZLEKIT_DIALECT, type DdtDialect } from '@andyrmitchell/drizzle-dialect-types';
 import postgres from 'postgres';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
