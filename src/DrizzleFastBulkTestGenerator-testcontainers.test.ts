@@ -27,7 +27,8 @@ runTests('sqlite', 'libsql');
 
 function runTests(key:DdtDialect, sqliteDriver?:DdtSqliteDriver) {
 
-    test(`[${key}] basic works`, async () => {
+    test(`[${key}] basic works`, async (cx) => {
+        
 
         const tdbg = createDrizzleFastBulkTestGenerators(TEST_DIR, key as 'pg', 'postgres');
         const { db, schemas } = await tdbg.nextTest();

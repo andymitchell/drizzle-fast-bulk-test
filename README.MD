@@ -7,7 +7,7 @@ It's slow to spin up a local database (e.g. Pglite) and slow to run drizzle-kit.
 # How it works 
 
 To run tests much faster, it generates a batch consisting of: 
-- A single db instance. Either Pglite (Postgres) instance, or a Libsql (Sqlite).
+- A single db instance. E.g. Pglite (Postgres) instance, or a Libsql (Sqlite).
 - X copies of your schema, each with a unique ID, loaded into the database. 
 
 Then each test calls `.nextTest()`, which returns the batch's database, and the schema for next unused copy. 
@@ -20,7 +20,10 @@ Example:
 const tdbg = new DrizzleFastBulkTestGenerator<'pg', TestTablePg>(
     TEST_DIR, 
     {
-        dialect: 'pg',
+        db: {
+            dialect: 'pg',
+            driver: 'pglite',
+        },
         batch_size: 5,
         generate_schemas_for_batch: async (batchPositions, batchTestDirAbsolutePath) => {
             

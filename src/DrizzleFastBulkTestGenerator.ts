@@ -15,7 +15,7 @@ import Database from 'better-sqlite3';
 import { fileIoSyncNode } from "@andyrmitchell/file-io";
 import { QueueMemory } from '@andyrmitchell/utils/queue';
 import { uid } from '@andyrmitchell/utils/uid';
-import {PostgreSqlContainer} from "@testcontainers/postgresql";
+import {PostgreSqlContainer, StartedPostgreSqlContainer} from "@testcontainers/postgresql";
 
 
 import type {  SchemaFormatDefault, TestSqlDb, DrizzleFastBulkTestGeneratorOptions, CreatedDbByDialectAndDriver, DdtDialectDriver } from './types.js';
@@ -241,7 +241,19 @@ async function setupTestPgliteDb(migrationsFolder: string):Promise<CreatedDbByDi
 
 async function setupTestPostgresDb(migrationsFolder: string):Promise<CreatedDbByDialectAndDriver<"pg", "postgres">> {
 
-    const postgresContainer = await new PostgreSqlContainer().start();
+
+    let postgresContainer:StartedPostgreSqlContainer;
+    try {
+        // More at https://hub.docker.com/_/postgres 
+        postgresContainer = await new PostgreSqlContainer('postgres:16.9-alpine').start();
+    } catch(e) {
+        if( e instanceof Error ) {
+            if( e.message.includes('Could not find a working container runtime strategy') ) {
+                e.message += ' (Docker must be running)'
+            }
+        }
+        throw e;
+    }
 
     let db:PgDatabase<any>;
     let client:postgres.Sql;
