@@ -1,4 +1,4 @@
-import { removeDirectory, thisDir } from "@andyrmitchell/file-io";
+import { removeDirectorySync, thisDir } from "@andyrmitchell/file-io";
 import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile.js";
 import { testTableCreatorPg, type TestTablePg } from "./test-table.pg.js";
 import { testTableCreatorSqlite, type TestTableSqlite } from "./test-table.sqlite.js";
@@ -114,7 +114,7 @@ export function getRelativeTestDir(testScriptMetaUrl: string, subDir = 'test-sch
 export function clearDir(testDir: string): void {
 
 
-    removeDirectory(testDir, true);
+    removeDirectorySync(testDir, true);
 
 }
 
