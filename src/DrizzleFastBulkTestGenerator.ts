@@ -22,7 +22,7 @@ import type {  SchemaFormatDefault, TestSqlDb, DrizzleFastBulkTestGeneratorOptio
 import { DDT_DIALECT_TO_DRIZZLEKIT_DIALECT, type DdtDialect } from '@andyrmitchell/drizzle-dialect-types';
 import postgres from 'postgres';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
-import { fileIoSyncNode } from '@andyrmitchell/file-io/old';
+
 
 
 
