@@ -12,7 +12,7 @@ import { drizzle as drizzleLibsql } from 'drizzle-orm/libsql';
 import { drizzle as drizzleBetterSqlite} from 'drizzle-orm/better-sqlite3';
 import { migrate as migrateBetterSqlite} from 'drizzle-orm/better-sqlite3/migrator';
 import Database from 'better-sqlite3';
-import { fileIoSyncNode } from "@andyrmitchell/file-io";
+import {  execute, relative, writeSync } from "@andyrmitchell/file-io";
 import { QueueMemory } from '@andyrmitchell/utils/queue';
 import { uid } from '@andyrmitchell/utils/uid';
 import {PostgreSqlContainer, StartedPostgreSqlContainer} from "@testcontainers/postgresql";
@@ -22,6 +22,7 @@ import type {  SchemaFormatDefault, TestSqlDb, DrizzleFastBulkTestGeneratorOptio
 import { DDT_DIALECT_TO_DRIZZLEKIT_DIALECT, type DdtDialect } from '@andyrmitchell/drizzle-dialect-types';
 import postgres from 'postgres';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
+import { fileIoSyncNode } from '@andyrmitchell/file-io/old';
 
 
 
@@ -110,7 +111,7 @@ export class DrizzleFastBulkTestGenerator<D extends DdtDialect = DdtDialect, DR 
 
 
         // Let drizzle generate the SQL for all the schemas and tables 
-        runDrizzleKit(testDirAbsolutePath, drizzlePaths.config_path);
+        await runDrizzleKit(testDirAbsolutePath, drizzlePaths.config_path);
 
 
         // Generate the db: 
@@ -200,7 +201,7 @@ function createDrizzleConfigFile(testDirAbsolutePath:string, dialect:DdtDialect,
 
 
     schemaFileAbsolutePaths = schemaFileAbsolutePaths.map(fp => {
-        return fileIoSyncNode.relative(testDirAbsolutePath, fp);
+        return relative(testDirAbsolutePath, fp);
     })
 
 
@@ -211,24 +212,24 @@ function createDrizzleConfigFile(testDirAbsolutePath:string, dialect:DdtDialect,
     const drizzleConfig:Config = {
         dialect: DDT_DIALECT_TO_DRIZZLEKIT_DIALECT[dialect],
         schema: schemaFileAbsolutePaths,
-        out: fileIoSyncNode.relative(testDirAbsolutePath, migrationPath)
+        out: relative(testDirAbsolutePath, migrationPath)
     }
 
 
 
-    fileIoSyncNode.write(targetFile, `
+    writeSync(targetFile, `
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig(${JSON.stringify(drizzleConfig, undefined, 4)});
-                `.trim(), {overwrite: true});
+                `.trim(), {overwrite: true}, true);
 
     return {config_path: targetFile, migration_path: migrationPath};
 
 }
 
-function runDrizzleKit(testDirAbsolutePath:string, drizzleConfigFileAbsolutePath:string) {
-    const configPath = fileIoSyncNode.relative(testDirAbsolutePath, drizzleConfigFileAbsolutePath);
-    fileIoSyncNode.execute(`npx drizzle-kit generate --config="${configPath}"`, false, {cwd: testDirAbsolutePath, encoding: 'utf8'});
+async function runDrizzleKit(testDirAbsolutePath:string, drizzleConfigFileAbsolutePath:string) {
+    const configPath = relative(testDirAbsolutePath, drizzleConfigFileAbsolutePath);
+    await execute(`npx drizzle-kit generate --config="${configPath}"`, {cwd: testDirAbsolutePath});
 }
 
 

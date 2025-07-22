@@ -1,4 +1,4 @@
-import { fileIoSyncNode } from "@andyrmitchell/file-io";
+import { removeDirectory, thisDir } from "@andyrmitchell/file-io";
 import { createSchemaDefinitionFile } from "./createSchemaDefinitionFile.js";
 import { testTableCreatorPg, type TestTablePg } from "./test-table.pg.js";
 import { testTableCreatorSqlite, type TestTableSqlite } from "./test-table.sqlite.js";
@@ -7,6 +7,8 @@ import { DrizzleFastBulkTestGenerator } from "./DrizzleFastBulkTestGenerator.js"
 import { fileURLToPath } from 'url';
 import type { DdtDialect } from "@andyrmitchell/drizzle-dialect-types";
 import type { DdtDialectDriver } from "./types.js";
+import { dirname } from "path";
+import { existsSync } from "fs";
 
 
 
@@ -107,14 +109,12 @@ export function createDrizzleFastBulkTestGenerators<D extends DdtDialect, DR ext
 
 
 export function getRelativeTestDir(testScriptMetaUrl: string, subDir = 'test-schemas'): string {
-    return `${fileIoSyncNode.directory_name(fileURLToPath(testScriptMetaUrl))}/${subDir}`;
+    return `${thisDir(testScriptMetaUrl)}/${subDir}`;
 }
 export function clearDir(testDir: string): void {
 
 
-    if (fileIoSyncNode.has_directory(testDir)) {
-        fileIoSyncNode.remove_directory(testDir, true);
-    }
+    removeDirectory(testDir, true);
 
 }
 

@@ -1,4 +1,4 @@
-import { fileIoSyncNode, getPackageDirectorySync } from "@andyrmitchell/file-io";
+import { getPackageDirectorySync, lsSync, relative, writeSync } from "@andyrmitchell/file-io";
 import * as path from 'path';
 
 type Options = {
@@ -55,19 +55,19 @@ export function createSchemaDefinitionFile(options:Options, storeIds: string[], 
     if( options.verbose ) console.log('createSchemaDefinitionFile', {storeIds});
     // Get the package root that will contain sqlSchemaCreator.ts, then find it
     const rootDir = getPackageDirectorySync({
-        target: 'closest-directory',
-        dir: options.test_dir_absolute_path
-    });
+        type: 'path',
+        path: options.test_dir_absolute_path
+    }, true).packageDirectoryPath;
 
     if( options.verbose ) console.log('createSchemaDefinitionFile got package dir: ', rootDir);
     
     
     const file_pattern = options.table_creator_import.link_file_pattern instanceof RegExp? options.table_creator_import.link_file_pattern : new RegExp(options.table_creator_import.link_file_pattern);
-    const files = fileIoSyncNode.list_files(rootDir, {recurse: true, file_pattern});
+    const files = lsSync(rootDir, {recursive: true, file_pattern}, true).contents;
     if( options.verbose ) console.log('createSchemaDefinitionFile listed files ', {files});
     const sqlSchemaCreatorFile = files[0]!;
 
-    const importUrl = fileIoSyncNode.relative(options.test_dir_absolute_path, sqlSchemaCreatorFile.uri);
+    const importUrl = relative(options.test_dir_absolute_path, sqlSchemaCreatorFile.uri);
 
     let content = `
 import ${options.table_creator_import.import_name} from "${importUrl.replace(/\.(t|j)s$/, '')}${extension}";
@@ -83,7 +83,7 @@ ${options.table_creator_invocation(storeIds)}
     
     if( options.verbose ) console.log('createSchemaDefinitionFile writing file', targetFile);
 
-    fileIoSyncNode.write(targetFile, content, {overwrite: true});
+    writeSync(targetFile, content, {overwrite: true}, true);
 
     return targetFile;
 

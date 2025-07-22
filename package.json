@@ -36,7 +36,7 @@
   "license": "MIT",
   "dependencies": {
     "@andyrmitchell/drizzle-dialect-types": "^0.0.9",
-    "@andyrmitchell/file-io": "^0.11.0",
+    "@andyrmitchell/file-io": "^0.14.6",
     "@andyrmitchell/utils": "^0.21.1",
     "drizzle-kit": "^0.29.0",
     "drizzle-orm": "^0.36.4",
